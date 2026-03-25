@@ -34,11 +34,8 @@ npm install express mongoose dotenv cors
 npm install -D nodemon
 ```
 
-2. Configure environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your values
-```
+
+
 
 3. Start the server:
 ```bash
@@ -47,8 +44,7 @@ npm run dev
 
 ## API Endpoints
 
-### Health Check
-- `GET /api/health` - Check API status
+
 
 ### Users
 - `GET /api/users` - Get all users
@@ -59,7 +55,7 @@ npm run dev
 
 ## Features
 
-- Clean MVC architecture
+
 - Centralized error handling
 - Async error wrapper
 - MongoDB with Mongoose

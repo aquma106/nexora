@@ -81,12 +81,16 @@ const Admin = () => {
 
   const handleApprove = async (userId, userName) => {
     try {
-      await axios.put(`/admin/users/${userId}/approve`);
+      console.log('Approving user:', userId);
+      const response = await axios.put(`/admin/users/${userId}/approve`);
+      console.log('Approve response:', response.data);
       alert(`${userName} has been approved!`);
       fetchPendingAlumni();
       fetchStats();
       if (activeTab === 'users') fetchUsers();
     } catch (error) {
+      console.error('Error approving user:', error);
+      console.error('Error response:', error.response?.data);
       alert(error.response?.data?.message || 'Failed to approve user');
     }
   };
@@ -94,9 +98,11 @@ const Admin = () => {
   const handleReject = async () => {
     if (!selectedUser) return;
     try {
-      await axios.put(`/admin/users/${selectedUser._id}/reject`, {
+      console.log('Rejecting user:', selectedUser._id);
+      const response = await axios.put(`/admin/users/${selectedUser._id}/reject`, {
         reason: rejectReason,
       });
+      console.log('Reject response:', response.data);
       alert(`${selectedUser.name} has been rejected`);
       setShowRejectModal(false);
       setRejectReason('');
@@ -105,6 +111,8 @@ const Admin = () => {
       fetchStats();
       if (activeTab === 'users') fetchUsers();
     } catch (error) {
+      console.error('Error rejecting user:', error);
+      console.error('Error response:', error.response?.data);
       alert(error.response?.data?.message || 'Failed to reject user');
     }
   };

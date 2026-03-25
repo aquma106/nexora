@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 import {
   FiUsers,
@@ -12,10 +13,12 @@ import {
   FiMapPin,
   FiCalendar,
   FiAlertCircle,
+  FiMessageCircle,
 } from 'react-icons/fi';
 
 const Mentorship = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('browse');
   const [mentors, setMentors] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
@@ -101,6 +104,11 @@ const Mentorship = () => {
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to respond to request');
     }
+  };
+
+  const handleStartConversation = (userId) => {
+    // Navigate to messages page - the conversation will be created when first message is sent
+    navigate('/messages', { state: { startConversationWith: userId } });
   };
 
   const getStatusBadge = (status) => {
@@ -306,6 +314,16 @@ const Mentorship = () => {
                           </div>
                         )}
 
+                        {request.status === 'accepted' && (
+                          <button
+                            onClick={() => handleStartConversation(request.receiver._id)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2 mb-4"
+                          >
+                            <FiMessageCircle size={18} />
+                            <span>Message {request.receiver.name}</span>
+                          </button>
+                        )}
+
                         <p className="text-xs text-gray-500">
                           Sent {new Date(request.createdAt).toLocaleDateString()}
                         </p>
@@ -378,6 +396,16 @@ const Mentorship = () => {
                               <span>Reject</span>
                             </button>
                           </div>
+                        )}
+
+                        {request.status === 'accepted' && (
+                          <button
+                            onClick={() => handleStartConversation(request.sender._id)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2"
+                          >
+                            <FiMessageCircle size={18} />
+                            <span>Message {request.sender.name}</span>
+                          </button>
                         )}
 
                         <p className="text-xs text-gray-500 mt-4">

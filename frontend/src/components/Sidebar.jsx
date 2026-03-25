@@ -1,5 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   FiHome,
   FiUsers,
@@ -9,24 +9,33 @@ import {
   FiSettings,
   FiShield,
   FiX,
-} from 'react-icons/fi';
+} from "react-icons/fi";
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
   const location = useLocation();
   const { user } = useAuth();
 
   const menuItems = [
-    { path: '/dashboard', icon: FiHome, label: 'Dashboard', roles: ['all'] },
-    { path: '/opportunities', icon: FiBriefcase, label: 'Opportunities', roles: ['all'] },
-    { path: '/mentorship', icon: FiUsers, label: 'Mentorship', roles: ['all'] },
-    { path: '/messages', icon: FiMessageSquare, label: 'Messages', roles: ['all'] },
-    { path: '/profile', icon: FiUser, label: 'Profile', roles: ['all'] },
-    { path: '/admin', icon: FiShield, label: 'Admin Panel', roles: ['admin'] },
-    { path: '/settings', icon: FiSettings, label: 'Settings', roles: ['all'] },
+    { path: "/dashboard", icon: FiHome, label: "Dashboard", roles: ["all"] },
+    {
+      path: "/opportunities",
+      icon: FiBriefcase,
+      label: "Opportunities",
+      roles: ["all"],
+    },
+    { path: "/mentorship", icon: FiUsers, label: "Mentorship", roles: ["all"] },
+    {
+      path: "/messages",
+      icon: FiMessageSquare,
+      label: "Messages",
+      roles: ["all"],
+    },
+    { path: "/profile", icon: FiUser, label: "Profile", roles: ["all"] },
+    { path: "/admin", icon: FiShield, label: "Admin Panel", roles: ["admin"] },
   ];
 
   const filteredMenuItems = menuItems.filter(
-    (item) => item.roles.includes('all') || item.roles.includes(user?.role)
+    (item) => item.roles.includes("all") || item.roles.includes(user?.role),
   );
 
   const isActive = (path) => location.pathname === path;
@@ -44,7 +53,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
       {/* Sidebar */}
       <aside
         className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
         {/* Close button for mobile */}
@@ -67,8 +76,8 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                     onClick={closeSidebar}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive(item.path)
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     <Icon size={20} />

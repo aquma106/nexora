@@ -11,7 +11,7 @@ const hpp = require('hpp');
 // General API rate limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Higher limit in development
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later',
@@ -23,7 +23,7 @@ const apiLimiter = rateLimit({
 // Strict rate limiter for authentication endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 5 : 50, // Higher limit in development
   skipSuccessfulRequests: true, // Don't count successful requests
   message: {
     success: false,
@@ -36,7 +36,7 @@ const authLimiter = rateLimit({
 // Rate limiter for registration
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // Limit each IP to 3 registrations per hour
+  max: process.env.NODE_ENV === 'production' ? 3 : 20, // Higher limit in development
   message: {
     success: false,
     message: 'Too many accounts created from this IP, please try again after an hour',
@@ -60,10 +60,22 @@ const passwordResetLimiter = rateLimit({
 // Rate limiter for admin operations
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // Limit each IP to 50 requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 50 : 500, // Higher limit in development
   message: {
     success: false,
     message: 'Too many admin requests, please try again later',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiter for messaging (more lenient for real-time communication)
+const messageLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: process.env.NODE_ENV === 'production' ? 30 : 200, // Allow more messages in development
+  message: {
+    success: false,
+    message: 'Too many messages sent, please slow down',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -228,13 +240,18 @@ const logSuspiciousActivity = (req, res, next) => {
 // Validate content type for POST/PUT requests
 const validateContentType = (req, res, next) => {
   if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-    const contentType = req.get('Content-Type');
+    const contentLength = req.get('Content-Length');
     
-    if (!contentType || !contentType.includes('application/json')) {
-      return res.status(400).json({
-        success: false,
-        message: 'Content-Type must be application/json',
-      });
+    // Only validate Content-Type if there's actually a body
+    if (contentLength && parseInt(contentLength) > 0) {
+      const contentType = req.get('Content-Type');
+      
+      if (!contentType || !contentType.includes('application/json')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Content-Type must be application/json',
+        });
+      }
     }
   }
   
@@ -269,6 +286,7 @@ module.exports = {
   registerLimiter,
   passwordResetLimiter,
   adminLimiter,
+  messageLimiter,
   
   // Security middleware
   securityHeaders,

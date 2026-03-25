@@ -9,6 +9,7 @@ const {
   getUnreadCount,
 } = require('../controllers/messageController');
 const { protect, restrictPendingUsers } = require('../middleware/auth');
+const { messageLimiter } = require('../middleware/security');
 
 // All message routes require authentication
 
@@ -21,8 +22,8 @@ router.get('/unread/count', protect, getUnreadCount);
 // Get messages in a conversation
 router.get('/conversation/:userId', protect, getMessages);
 
-// Send message (REST API fallback)
-router.post('/', protect, restrictPendingUsers, sendMessage);
+// Send message (REST API fallback) - with rate limiting
+router.post('/', protect, restrictPendingUsers, messageLimiter, sendMessage);
 
 // Mark message as read
 router.put('/:id/read', protect, markAsRead);

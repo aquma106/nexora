@@ -151,15 +151,21 @@ const getPendingAlumni = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/users/:id/approve
 // @access  Private (Admin only)
 const approveUser = asyncHandler(async (req, res) => {
+  console.log('Approve user request received for ID:', req.params.id);
+  
   const user = await User.findById(req.params.id);
 
   if (!user) {
+    console.log('User not found:', req.params.id);
     res.status(404);
     throw new Error('User not found');
   }
 
+  console.log('User found:', user.name, 'Current status:', user.status);
+
   // Check if user is pending
   if (user.status !== 'pending') {
+    console.log('User status is not pending:', user.status);
     res.status(400);
     throw new Error(`User status is already ${user.status}`);
   }
@@ -167,6 +173,8 @@ const approveUser = asyncHandler(async (req, res) => {
   // Update status to approved
   user.status = 'approved';
   await user.save();
+
+  console.log('User approved successfully:', user.name);
 
   res.status(200).json({
     success: true,
@@ -180,16 +188,22 @@ const approveUser = asyncHandler(async (req, res) => {
 // @access  Private (Admin only)
 const rejectUser = asyncHandler(async (req, res) => {
   const { reason } = req.body;
+  
+  console.log('Reject user request received for ID:', req.params.id);
 
   const user = await User.findById(req.params.id);
 
   if (!user) {
+    console.log('User not found:', req.params.id);
     res.status(404);
     throw new Error('User not found');
   }
 
+  console.log('User found:', user.name, 'Current status:', user.status);
+
   // Check if user is pending
   if (user.status !== 'pending') {
+    console.log('User status is not pending:', user.status);
     res.status(400);
     throw new Error(`User status is already ${user.status}`);
   }
@@ -197,6 +211,8 @@ const rejectUser = asyncHandler(async (req, res) => {
   // Update status to rejected
   user.status = 'rejected';
   await user.save();
+
+  console.log('User rejected successfully:', user.name);
 
   res.status(200).json({
     success: true,

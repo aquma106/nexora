@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 import axios from '../utils/axios';
 import { io } from 'socket.io-client';
 import {
@@ -9,10 +10,12 @@ import {
   FiCheck,
   FiCheckCircle,
   FiCircle,
+  FiMessageCircle,
 } from 'react-icons/fi';
 
 const Messages = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [socket, setSocket] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -21,6 +24,7 @@ const Messages = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typing, setTyping] = useState(false);
+  const [showNewConversation, setShowNewConversation] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
@@ -80,6 +84,24 @@ const Messages = () => {
     fetchConversations();
   }, []);
 
+  // Handle navigation from mentorship page
+  useEffect(() => {
+    if (location.state?.startConversationWith) {
+      const userId = location.state.startConversationWith;
+      // Check if conversation already exists
+      const existingConv = conversations.find(
+        (conv) => conv.otherUser._id === userId
+      );
+      
+      if (existingConv) {
+        setSelectedConversation(existingConv);
+      } else {
+        // Create a new conversation placeholder
+        fetchUserForNewConversation(userId);
+      }
+    }
+  }, [location.state, conversations]);
+
   // Fetch messages when conversation is selected
   useEffect(() => {
     if (selectedConversation) {
@@ -98,6 +120,23 @@ const Messages = () => {
       setConversations(data.data);
     } catch (error) {
       console.error('Error fetching conversations:', error);
+    }
+  };
+
+  const fetchUserForNewConversation = async (userId) => {
+    try {
+      const { data } = await axios.get(`/users/${userId}`);
+      const newConv = {
+        conversationId: `new_${userId}`,
+        otherUser: data.data,
+        lastMessage: null,
+        unreadCount: 0,
+      };
+      setSelectedConversation(newConv);
+      setMessages([]);
+      setShowNewConversation(true);
+    } catch (error) {
+      console.error('Error fetching user:', error);
     }
   };
 
@@ -123,7 +162,10 @@ const Messages = () => {
         if (response.success) {
           setMessages((prev) => [...prev, response.data]);
           setNewMessage('');
+          setShowNewConversation(false);
           scrollToBottom();
+          // Refresh conversations to show the new one
+          fetchConversations();
         }
       }
     );
@@ -222,7 +264,13 @@ const Messages = () => {
             ))
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
-              No conversations yet
+              <div className="text-center">
+                <FiMessageCircle size={48} className="mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">No conversations yet</p>
+                <p className="text-sm">
+                  Accept a mentorship request to start messaging
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -336,8 +384,11 @@ const Messages = () => {
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
             <div className="text-center">
-              <FiCircle size={48} className="mx-auto mb-4 opacity-50" />
-              <p>Select a conversation to start messaging</p>
+              <FiMessageCircle size={48} className="mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">Select a conversation to start messaging</p>
+              <p className="text-sm">
+                Or accept a mentorship request to begin chatting
+              </p>
             </div>
           </div>
         )}
