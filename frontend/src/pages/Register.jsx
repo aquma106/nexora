@@ -22,7 +22,12 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // Parse graduationYear as integer
+    const parsedValue = name === 'graduationYear' ? parseInt(value, 10) || new Date().getFullYear() : value;
+    
+    setFormData({ ...formData, [name]: parsedValue });
     setError('');
   };
 
@@ -51,6 +56,10 @@ const Register = () => {
     }
 
     const { confirmPassword, ...registerData } = formData;
+    
+    // Ensure graduationYear is sent as an integer
+    registerData.graduationYear = parseInt(registerData.graduationYear, 10);
+    
     const result = await register(registerData);
 
     if (result.success) {
@@ -69,7 +78,7 @@ const Register = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <FiCheckCircle className="text-green-600" size={32} />
@@ -85,7 +94,7 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Join Nexora</h1>

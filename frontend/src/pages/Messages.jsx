@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useLocation } from 'react-router-dom';
-import axios from '../utils/axios';
-import { io } from 'socket.io-client';
+import { useState, useEffect, useRef } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useLocation } from "react-router-dom";
+import axios from "../utils/axios";
+import { io } from "socket.io-client";
 import {
   FiSend,
   FiSearch,
@@ -11,7 +11,7 @@ import {
   FiCheckCircle,
   FiCircle,
   FiMessageCircle,
-} from 'react-icons/fi';
+} from "react-icons/fi";
 
 const Messages = () => {
   const { user } = useAuth();
@@ -20,8 +20,8 @@ const Messages = () => {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [newMessage, setNewMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typing, setTyping] = useState(false);
   const [showNewConversation, setShowNewConversation] = useState(false);
@@ -30,47 +30,49 @@ const Messages = () => {
 
   // Initialize Socket.io
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const newSocket = io('http://localhost:5000', {
+    const token = localStorage.getItem("token");
+    const newSocket = io("https://nexora-ilt4.onrender.com", {
       auth: { token },
     });
 
-    newSocket.on('connect', () => {
-      console.log('Connected to socket server');
+    newSocket.on("connect", () => {
+      console.log("Connected to socket server");
     });
 
-    newSocket.on('activeUsers', (users) => {
+    newSocket.on("activeUsers", (users) => {
       setOnlineUsers(users);
     });
 
-    newSocket.on('userOnline', ({ userId }) => {
+    newSocket.on("userOnline", ({ userId }) => {
       setOnlineUsers((prev) => [...prev, userId]);
     });
 
-    newSocket.on('userOffline', ({ userId }) => {
+    newSocket.on("userOffline", ({ userId }) => {
       setOnlineUsers((prev) => prev.filter((id) => id !== userId));
     });
 
-    newSocket.on('receiveMessage', (message) => {
+    newSocket.on("receiveMessage", (message) => {
       setMessages((prev) => [...prev, message]);
       scrollToBottom();
     });
 
-    newSocket.on('userTyping', ({ userId }) => {
+    newSocket.on("userTyping", ({ userId }) => {
       if (selectedConversation?.otherUser?._id === userId) {
         setTyping(true);
       }
     });
 
-    newSocket.on('userStoppedTyping', ({ userId }) => {
+    newSocket.on("userStoppedTyping", ({ userId }) => {
       if (selectedConversation?.otherUser?._id === userId) {
         setTyping(false);
       }
     });
 
-    newSocket.on('messageRead', ({ messageId }) => {
+    newSocket.on("messageRead", ({ messageId }) => {
       setMessages((prev) =>
-        prev.map((msg) => (msg._id === messageId ? { ...msg, isRead: true } : msg))
+        prev.map((msg) =>
+          msg._id === messageId ? { ...msg, isRead: true } : msg,
+        ),
       );
     });
 
@@ -90,9 +92,9 @@ const Messages = () => {
       const userId = location.state.startConversationWith;
       // Check if conversation already exists
       const existingConv = conversations.find(
-        (conv) => conv.otherUser._id === userId
+        (conv) => conv.otherUser._id === userId,
       );
-      
+
       if (existingConv) {
         setSelectedConversation(existingConv);
       } else {
@@ -116,10 +118,10 @@ const Messages = () => {
 
   const fetchConversations = async () => {
     try {
-      const { data } = await axios.get('/messages/conversations');
+      const { data } = await axios.get("/messages/conversations");
       setConversations(data.data);
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      console.error("Error fetching conversations:", error);
     }
   };
 
@@ -136,7 +138,7 @@ const Messages = () => {
       setMessages([]);
       setShowNewConversation(true);
     } catch (error) {
-      console.error('Error fetching user:', error);
+      console.error("Error fetching user:", error);
     }
   };
 
@@ -145,7 +147,7 @@ const Messages = () => {
       const { data } = await axios.get(`/messages/conversation/${userId}`);
       setMessages(data.data);
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error("Error fetching messages:", error);
     }
   };
 
@@ -153,7 +155,7 @@ const Messages = () => {
     if (!newMessage.trim() || !selectedConversation || !socket) return;
 
     socket.emit(
-      'sendMessage',
+      "sendMessage",
       {
         receiverId: selectedConversation.otherUser._id,
         text: newMessage,
@@ -161,38 +163,40 @@ const Messages = () => {
       (response) => {
         if (response.success) {
           setMessages((prev) => [...prev, response.data]);
-          setNewMessage('');
+          setNewMessage("");
           setShowNewConversation(false);
           scrollToBottom();
           // Refresh conversations to show the new one
           fetchConversations();
         }
-      }
+      },
     );
   };
 
   const handleTyping = () => {
     if (!socket || !selectedConversation) return;
 
-    socket.emit('typing', { receiverId: selectedConversation.otherUser._id });
+    socket.emit("typing", { receiverId: selectedConversation.otherUser._id });
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('stopTyping', { receiverId: selectedConversation.otherUser._id });
+      socket.emit("stopTyping", {
+        receiverId: selectedConversation.otherUser._id,
+      });
     }, 1000);
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const isOnline = (userId) => onlineUsers.includes(userId);
 
   const filteredConversations = conversations.filter((conv) =>
-    conv.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -222,8 +226,8 @@ const Messages = () => {
                 onClick={() => setSelectedConversation(conv)}
                 className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition ${
                   selectedConversation?.conversationId === conv.conversationId
-                    ? 'bg-blue-50'
-                    : ''
+                    ? "bg-blue-50"
+                    : ""
                 }`}
               >
                 <div className="flex items-start space-x-3">
@@ -241,15 +245,17 @@ const Messages = () => {
                         {conv.otherUser.name}
                       </h3>
                       <span className="text-xs text-gray-500">
-                        {new Date(conv.lastMessage.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
+                        {new Date(
+                          conv.lastMessage.createdAt,
+                        ).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-gray-600 truncate">
-                        {conv.lastMessage.sender._id === user._id && 'You: '}
+                        {conv.lastMessage.sender._id === user._id && "You: "}
                         {conv.lastMessage.text}
                       </p>
                       {conv.unreadCount > 0 && (
@@ -265,7 +271,10 @@ const Messages = () => {
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
               <div className="text-center">
-                <FiMessageCircle size={48} className="mx-auto mb-4 opacity-50" />
+                <FiMessageCircle
+                  size={48}
+                  className="mx-auto mb-4 opacity-50"
+                />
                 <p className="text-lg font-medium mb-2">No conversations yet</p>
                 <p className="text-sm">
                   Accept a mentorship request to start messaging
@@ -285,7 +294,9 @@ const Messages = () => {
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {selectedConversation.otherUser.name.charAt(0).toUpperCase()}
+                    {selectedConversation.otherUser.name
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                   {isOnline(selectedConversation.otherUser._id) && (
                     <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
@@ -296,7 +307,9 @@ const Messages = () => {
                     {selectedConversation.otherUser.name}
                   </h3>
                   <p className="text-xs text-gray-500">
-                    {isOnline(selectedConversation.otherUser._id) ? 'Online' : 'Offline'}
+                    {isOnline(selectedConversation.otherUser._id)
+                      ? "Online"
+                      : "Offline"}
                   </p>
                 </div>
               </div>
@@ -312,21 +325,21 @@ const Messages = () => {
                 return (
                   <div
                     key={message._id}
-                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                   >
                     <div
                       className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                         isOwn
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-900"
                       }`}
                     >
                       <p className="text-sm">{message.text}</p>
                       <div className="flex items-center justify-end space-x-1 mt-1">
                         <span className="text-xs opacity-75">
                           {new Date(message.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
+                            hour: "2-digit",
+                            minute: "2-digit",
                           })}
                         </span>
                         {isOwn && (
@@ -367,7 +380,7 @@ const Messages = () => {
                     setNewMessage(e.target.value);
                     handleTyping();
                   }}
-                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                   placeholder="Type a message..."
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -385,7 +398,9 @@ const Messages = () => {
           <div className="flex-1 flex items-center justify-center text-gray-500">
             <div className="text-center">
               <FiMessageCircle size={48} className="mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">Select a conversation to start messaging</p>
+              <p className="text-lg font-medium mb-2">
+                Select a conversation to start messaging
+              </p>
               <p className="text-sm">
                 Or accept a mentorship request to begin chatting
               </p>
